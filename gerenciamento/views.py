@@ -8,7 +8,9 @@ from knox.views import LoginView as KnoxLoginView
 from rest_framework.permissions import IsAuthenticated
 
 from .serializers import ChangePasswordSerializer, UserSerializer
-
+from .models import cargos, escolaridade, UserProfile
+from .serializers import CargosSerializer, EscolaridadeSerializer, UserProfileSerializer
+from rest_framework import viewsets
 
 # --- LOGIN ---
 class LoginAPI(KnoxLoginView):
@@ -60,3 +62,21 @@ class ChangePasswordView(generics.UpdateAPIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CargosViewSet(viewsets.ModelViewSet):
+    queryset = cargos.objects.all()
+    serializer_class = CargosSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class EscolaridadeViewSet(viewsets.ModelViewSet):
+    queryset = escolaridade.objects.all()
+    serializer_class = EscolaridadeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]

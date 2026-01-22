@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ARENA
+  ATLETA
+  PROFISSIONAL
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  password     String
+  role         Role
+  createdAt    DateTime      @default(now())
+  
+  arena        Arena?
+  atleta       Atleta?
+  profissional Profissional?
+}
+
+model Arena {
+  id        Int    @id @default(autoincrement())
+  userId    Int    @unique
+  nomeArena String
+  cnpj      String
+  
+  user      User   @relation(fields: [userId], references: [id])
+}
+
+model Atleta {
+  id      Int    @id @default(autoincrement())
+  userId  Int    @unique
+  apelido String
+  ranking Int    @default(0)
+  
+  user    User   @relation(fields: [userId], references: [id])
+}
+
+model Profissional {
+  id            Int     @id @default(autoincrement())
+  userId        Int     @unique
+  especialidade String
+  valorHora     Decimal
+  
+  user          User    @relation(fields: [userId], references: [id])
+}

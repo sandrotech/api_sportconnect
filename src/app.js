@@ -12,6 +12,15 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const length = res.getHeader('content-length') || 0;
+    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms ${length}`);
+  });
+  next();
+});
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));

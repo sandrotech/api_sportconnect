@@ -67,6 +67,26 @@ class AuthController {
       return res.status(400).json({ error: error.message });
     }
   }
+
+  async verifyIdentity(req, res) {
+    try {
+      const { cpf, dataNascimento, email } = req.body;
+      const result = await authService.verifyIdentity(cpf, dataNascimento, email);
+      return res.json(result);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+
+  async resetPasswordWithVerification(req, res) {
+    try {
+      const { userId, newPassword } = req.body;
+      const result = await authService.resetPasswordWithVerification(userId, newPassword);
+      return res.json(result);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
 }
 
 export default new AuthController();

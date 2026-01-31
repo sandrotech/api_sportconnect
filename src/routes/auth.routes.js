@@ -241,4 +241,64 @@ router.post('/forgot-password', authController.forgotPassword);
  */
 router.post('/reset-password', authController.resetPassword);
 
+/**
+ * @swagger
+ * /auth/verify-identity:
+ *   post:
+ *     summary: Verificar identidade com CPF e data de nascimento
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - cpf
+ *               - dataNascimento
+ *               - email
+ *             properties:
+ *               cpf:
+ *                 type: string
+ *               dataNascimento:
+ *                 type: string
+ *                 format: date
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Identidade verificada com sucesso
+ *       400:
+ *         description: Dados não correspondem
+ */
+router.post('/verify-identity', authController.verifyIdentity);
+
+/**
+ * @swagger
+ * /auth/reset-password-verification:
+ *   post:
+ *     summary: Redefinir senha após verificação
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - newPassword
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Senha redefinida com sucesso
+ *       400:
+ *         description: Erro na requisição
+ */
+router.post('/reset-password-verification', authController.resetPasswordWithVerification);
+
 export default router;

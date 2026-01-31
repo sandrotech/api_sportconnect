@@ -21,6 +21,8 @@ model User {
   role         Role
   createdAt    DateTime      @default(now())
   avatar       String?
+  cpf          String?       @unique
+  dataNascimento DateTime?
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
   

@@ -26,8 +26,17 @@ class AuthService {
     return { user: { id: user.id, name: user.name, email: user.email, role: user.role }, token };
   }
 
-  async registerArena({ name, email, password, nomeArena, cnpj }) {
+  async registerArena({ name, email, password, cpf, dataNascimento, nomeArena, cnpj }) {
     await this._checkEmail(email);
+    
+    // Verificar se CPF já existe
+    if (cpf) {
+      const existingCpf = await prisma.user.findUnique({ where: { cpf } });
+      if (existingCpf) {
+        throw new Error('CPF já cadastrado');
+      }
+    }
+    
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -36,6 +45,8 @@ class AuthService {
         email,
         password: hashedPassword,
         role: 'ARENA',
+        cpf,
+        dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
         arena: {
           create: {
             nomeArena,
@@ -49,8 +60,17 @@ class AuthService {
     return user;
   }
 
-  async registerAtleta({ name, email, password, apelido }) {
+  async registerAtleta({ name, email, password, cpf, dataNascimento, apelido }) {
     await this._checkEmail(email);
+    
+    // Verificar se CPF já existe
+    if (cpf) {
+      const existingCpf = await prisma.user.findUnique({ where: { cpf } });
+      if (existingCpf) {
+        throw new Error('CPF já cadastrado');
+      }
+    }
+    
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -59,6 +79,8 @@ class AuthService {
         email,
         password: hashedPassword,
         role: 'ATLETA',
+        cpf,
+        dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
         atleta: {
           create: {
             apelido,
@@ -72,8 +94,17 @@ class AuthService {
     return user;
   }
 
-  async registerProfissional({ name, email, password, especialidade, valorHora }) {
+  async registerProfissional({ name, email, password, cpf, dataNascimento, especialidade, valorHora }) {
     await this._checkEmail(email);
+    
+    // Verificar se CPF já existe
+    if (cpf) {
+      const existingCpf = await prisma.user.findUnique({ where: { cpf } });
+      if (existingCpf) {
+        throw new Error('CPF já cadastrado');
+      }
+    }
+    
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -82,6 +113,8 @@ class AuthService {
         email,
         password: hashedPassword,
         role: 'PROFISSIONAL',
+        cpf,
+        dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
         profissional: {
           create: {
             especialidade,
@@ -171,6 +204,64 @@ class AuthService {
         resetPasswordExpires: null,
       },
     });
+  }
+
+  async verifyIdentity(cpf, dataNascimento, email) {
+    // Converter string de data para Date
+    const birthDate = new Date(dataNascimento);
+    
+    const user = await prisma.user.findFirst({
+      where: {
+        cpf: cpf.replace(/[^\d]/g, ''), // Remove máscara do CPF
+        dataNascimento: birthDate,
+        email: email,
+      },
+    });
+
+    if (!user) {
+      throw new Error('Dados não correspondem a nenhum usuário cadastrado');
+    }
+
+    // Gerar token de redefinição
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 3600000); // 1 hora
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: token,
+        resetPasswordExpires: expires,
+      },
+    });
+
+    return { 
+      message: 'Identidade verificada com sucesso', 
+      token,
+      userId: user.id 
+    };
+  }
+
+  async resetPasswordWithVerification(userId, newPassword) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new Error('Usuário não encontrado');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+    });
+
+    return { message: 'Senha redefinida com sucesso' };
   }
 }
 

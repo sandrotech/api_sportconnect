@@ -37,6 +37,36 @@ class AuthController {
       return res.status(400).json({ error: error.message });
     }
   }
+
+  async changePassword(req, res) {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      await authService.changePassword(req.user.id, currentPassword, newPassword);
+      return res.json({ message: 'Senha alterada com sucesso' });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+
+  async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+      const result = await authService.forgotPassword(email);
+      return res.json(result);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+
+  async resetPassword(req, res) {
+    try {
+      const { token, password } = req.body;
+      await authService.resetPassword(token, password);
+      return res.json({ message: 'Senha redefinida com sucesso' });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
 }
 
 export default new AuthController();

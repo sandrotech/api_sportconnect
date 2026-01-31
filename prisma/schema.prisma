@@ -20,10 +20,14 @@ model User {
   password     String
   role         Role
   createdAt    DateTime      @default(now())
+  avatar       String?
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
   
   arena        Arena?
   atleta       Atleta?
   profissional Profissional?
+  groups       GroupMember[]
 }
 
 model Arena {
@@ -36,10 +40,12 @@ model Arena {
 }
 
 model Atleta {
-  id      Int    @id @default(autoincrement())
-  userId  Int    @unique
-  apelido String
-  ranking Int    @default(0)
+  id          Int     @id @default(autoincrement())
+  userId      Int     @unique
+  apelido     String?
+  ranking     Int     @default(0)
+  telefone    String?
+  localizacao String?
   
   user    User   @relation(fields: [userId], references: [id])
 }
@@ -51,4 +57,40 @@ model Profissional {
   valorHora     Decimal
   
   user          User    @relation(fields: [userId], references: [id])
+}
+
+model Group {
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String?
+  city        String
+  createdAt   DateTime      @default(now())
+  
+  members     GroupMember[]
+  schedules   GameSchedule[]
+}
+
+model GroupMember {
+  id        Int      @id @default(autoincrement())
+  groupId   Int
+  userId    Int
+  role      String   @default("MEMBER") // e.g., ADMIN, MEMBER
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  joinedAt  DateTime @default(now())
+  
+  group     Group    @relation(fields: [groupId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([groupId, userId])
+}
+
+model GameSchedule {
+  id          Int      @id @default(autoincrement())
+  groupId     Int
+  date        DateTime
+  location    String
+  description String?
+  createdAt   DateTime @default(now())
+  
+  group       Group    @relation(fields: [groupId], references: [id])
 }

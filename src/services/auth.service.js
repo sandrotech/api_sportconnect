@@ -207,19 +207,38 @@ class AuthService {
   }
 
   async verifyIdentity(cpf, dataNascimento, email) {
-    // Converter string de data para Date
-    const birthDate = new Date(dataNascimento);
+    const normalizedInputCpf = (cpf || '').replace(/\D/g, '');
+    const normalizedEmail = (email || '').trim();
     
     const user = await prisma.user.findFirst({
       where: {
-        cpf: cpf.replace(/[^\d]/g, ''), // Remove máscara do CPF
-        dataNascimento: birthDate,
-        email: email,
+        email: normalizedEmail,
       },
     });
 
     if (!user) {
       throw new Error('Dados não correspondem a nenhum usuário cadastrado');
+    }
+
+    const normalizedUserCpf = (user.cpf || '').replace(/\D/g, '');
+
+    if (!normalizedUserCpf || normalizedUserCpf !== normalizedInputCpf) {
+      throw new Error('Dados não correspondem a nenhum usuário cadastrado');
+    }
+
+    // Comparar apenas a data (ignorando hora) se a data de nascimento existir
+    if (user.dataNascimento) {
+      const userBirthDate = new Date(user.dataNascimento);
+      const inputBirthDate = new Date(dataNascimento);
+      
+      // Comparar ano, mês e dia
+      if (
+        userBirthDate.getFullYear() !== inputBirthDate.getFullYear() ||
+        userBirthDate.getMonth() !== inputBirthDate.getMonth() ||
+        userBirthDate.getDate() !== inputBirthDate.getDate()
+      ) {
+        throw new Error('Dados não correspondem a nenhum usuário cadastrado');
+      }
     }
 
     // Gerar token de redefinição

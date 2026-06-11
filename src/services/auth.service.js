@@ -4,6 +4,42 @@ import crypto from 'crypto';
 import prisma from '../config/prisma.js';
 
 class AuthService {
+  async loginWithGoogle(ticket, role) {
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const name = payload.name;
+    const picture = payload.picture;
+
+    let user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      const defaultPassword = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+      const roleUpper = (role || 'ATLETA').toUpperCase();
+
+      user = await prisma.user.create({
+        data: {
+          name,
+          email,
+          password: hashedPassword,
+          role: roleUpper,
+          avatar: picture,
+        }
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    return { 
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isComplete: !!user.cpf }, 
+      token 
+    };
+  }
+
   async login(email, password) {
     const user = await prisma.user.findUnique({ where: { email } });
 
@@ -24,7 +60,10 @@ class AuthService {
       { expiresIn: '1d' }
     );
 
-    return { user: { id: user.id, name: user.name, email: user.email, role: user.role }, token };
+    return { 
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isComplete: !!user.cpf }, 
+      token 
+    };
   }
 
   async registerArena({ name, email, password, cpf, dataNascimento, nomeArena, cnpj }) {

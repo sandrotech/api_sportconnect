@@ -1,10 +1,26 @@
 import authService from '../services/auth.service.js';
+import { OAuth2Client } from 'google-auth-library';
 
 class AuthController {
   async login(req, res) {
     try {
       const { email, password } = req.body;
       const data = await authService.login(email, password);
+      return res.json(data);
+    } catch (error) {
+      return res.status(401).json({ error: error.message });
+    }
+  }
+
+  async loginWithGoogle(req, res) {
+    try {
+      const { credential, role } = req.body;
+      const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+      const ticket = await client.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const data = await authService.loginWithGoogle(ticket, role);
       return res.json(data);
     } catch (error) {
       return res.status(401).json({ error: error.message });

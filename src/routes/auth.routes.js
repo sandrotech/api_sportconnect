@@ -50,6 +50,33 @@ router.post('/login', authController.login);
 
 /**
  * @swagger
+ * /auth/google:
+ *   post:
+ *     summary: Login de usuário com Google
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - credential
+ *             properties:
+ *               credential:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login bem sucedido
+ *       401:
+ *         description: Credenciais inválidas
+ */
+router.post('/google', authController.loginWithGoogle);
+
+/**
+ * @swagger
  * /auth/register/arena:
  *   post:
  *     summary: Registro de Arena

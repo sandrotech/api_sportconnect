@@ -13,8 +13,9 @@ class AtletaController {
   async updateMe(req, res) {
     try {
       const data = { ...req.body };
-      if (req.file) {
-        data.avatar = `uploads/${req.file.filename}`;
+      if (req.files) {
+        if (req.files.avatar) data.avatar = `uploads/${req.files.avatar[0].filename}`;
+        if (req.files.banner) data.banner = `uploads/${req.files.banner[0].filename}`;
       }
       
       const profile = await atletaService.updateProfile(req.user.id, data);

@@ -75,6 +75,6 @@ router.get('/me', authMiddleware, roleMiddleware(['ATLETA']), atletaController.g
  *       400:
  *         description: Erro na atualização
  */
-router.put('/me', authMiddleware, roleMiddleware(['ATLETA']), upload.single('avatar'), atletaController.updateMe);
+router.put('/me', authMiddleware, roleMiddleware(['ATLETA']), upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), atletaController.updateMe);
 
 export default router;

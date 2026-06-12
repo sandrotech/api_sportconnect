@@ -1,0 +1,11 @@
+import 'dotenv/config';
+import prisma from './src/config/prisma.js';
+
+async function main() {
+  const users = await prisma.user.findMany({
+    select: { id: true, email: true, role: true, name: true, cpf: true }
+  });
+  console.log('All Users:', JSON.stringify(users, null, 2));
+}
+
+main().finally(() => prisma.$disconnect());

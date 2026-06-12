@@ -27,6 +27,7 @@ model User {
   role         Role
   createdAt    DateTime      @default(now())
   avatar       String?
+  banner       String?
   cpf          String?       @unique
   dataNascimento DateTime?
   resetPasswordToken   String?
@@ -49,12 +50,15 @@ model Arena {
 }
 
 model Atleta {
-  id          Int     @id @default(autoincrement())
-  userId      Int     @unique
-  apelido     String?
-  ranking     Int     @default(0)
-  telefone    String?
-  localizacao String?
+  id           Int     @id @default(autoincrement())
+  userId       Int     @unique
+  apelido      String?
+  ranking      Int     @default(0)
+  telefone     String?
+  localizacao  String?
+  esportes     String?
+  nivel        String?
+  notificacoes String?
   
   user    User   @relation(fields: [userId], references: [id])
 }

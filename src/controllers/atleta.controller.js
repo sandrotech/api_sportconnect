@@ -14,8 +14,8 @@ class AtletaController {
     try {
       const data = { ...req.body };
       if (req.files) {
-        if (req.files.avatar) data.avatar = `uploads/${req.files.avatar[0].filename}`;
-        if (req.files.banner) data.banner = `uploads/${req.files.banner[0].filename}`;
+        if (req.files.avatar) data.avatar = req.files.avatar[0].location || `uploads/${req.files.avatar[0].filename}`;
+        if (req.files.banner) data.banner = req.files.banner[0].location || `uploads/${req.files.banner[0].filename}`;
       }
       
       const profile = await atletaService.updateProfile(req.user.id, data);

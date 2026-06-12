@@ -3,21 +3,67 @@ import atletaController from '../controllers/atleta.controller.js';
 import authMiddleware from '../middlewares/auth.middleware.js';
 import roleMiddleware from '../middlewares/role.middleware.js';
 import multer from 'multer';
+import multerS3 from 'multer-s3';
+import { S3Client, CreateBucketCommand, PutBucketPolicyCommand } from '@aws-sdk/client-s3';
 import path from 'path';
 
 const router = Router();
 
-// Configure Multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+// Configure S3 Client for MinIO
+const s3 = new S3Client({
+  endpoint: process.env.MINIO_SERVER_URL || 'http://localhost:9000',
+  region: 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.MINIO_ROOT_USER || 'admin',
+    secretAccessKey: process.env.MINIO_ROOT_PASSWORD || 'Cometa@123',
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
+  forcePathStyle: true,
 });
-const upload = multer({ storage: storage });
+
+// Initialize Bucket
+const bucketName = 'sportconnect';
+(async () => {
+  try {
+    await s3.send(new CreateBucketCommand({ Bucket: bucketName }));
+    console.log(`Bucket '${bucketName}' criado com sucesso no MinIO.`);
+    
+    // Set public read policy
+    const policy = {
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Sid: "PublicReadGetObject",
+          Effect: "Allow",
+          Principal: "*",
+          Action: "s3:GetObject",
+          Resource: `arn:aws:s3:::${bucketName}/*`
+        }
+      ]
+    };
+    await s3.send(new PutBucketPolicyCommand({ Bucket: bucketName, Policy: JSON.stringify(policy) }));
+    console.log(`Política pública aplicada ao bucket '${bucketName}'.`);
+  } catch (err) {
+    if (err.name !== 'BucketAlreadyExists' && err.name !== 'BucketAlreadyOwnedByYou') {
+      console.error('Erro ao inicializar bucket do MinIO:', err);
+    }
+  }
+})();
+
+// Configure Multer S3
+const upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: bucketName,
+    acl: 'public-read',
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'uploads/' + uniqueSuffix + path.extname(file.originalname));
+    }
+  })
+});
 
 /**
  * @swagger

@@ -10,6 +10,7 @@ import arenaRoutes from './routes/arena.routes.js';
 import atletaRoutes from './routes/atleta.routes.js';
 import profissionalRoutes from './routes/profissional.routes.js';
 import groupRoutes from './routes/group.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +41,7 @@ app.use('/arena', arenaRoutes);
 app.use('/atleta', atletaRoutes);
 app.use('/profissional', profissionalRoutes);
 app.use('/groups', groupRoutes);
+app.use('/admin-hub', adminRoutes);
 
 // Base route
 app.get('/', (req, res) => {

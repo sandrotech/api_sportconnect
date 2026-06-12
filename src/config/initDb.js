@@ -31,6 +31,7 @@ export async function initializeAdmin() {
             create: {
               nomeArena: 'SportConnect Sede',
               cnpj: '00000000000000',
+              status: 'APPROVED',
             },
           },
           atleta: {

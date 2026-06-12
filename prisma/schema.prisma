@@ -13,6 +13,12 @@ enum Role {
   PROFISSIONAL
 }
 
+enum ArenaStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id           Int           @id @default(autoincrement())
   name         String
@@ -33,12 +39,13 @@ model User {
 }
 
 model Arena {
-  id        Int    @id @default(autoincrement())
-  userId    Int    @unique
+  id        Int         @id @default(autoincrement())
+  userId    Int         @unique
   nomeArena String
   cnpj      String
+  status    ArenaStatus @default(PENDING)
   
-  user      User   @relation(fields: [userId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
 }
 
 model Atleta {

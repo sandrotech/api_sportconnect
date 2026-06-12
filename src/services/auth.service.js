@@ -125,9 +125,9 @@ class AuthService {
           cpf,
           dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
           arena: {
-            create: {
-              nomeArena,
-              cnpj,
+            upsert: {
+              create: { nomeArena, cnpj },
+              update: { nomeArena, cnpj },
             },
           },
         },
@@ -194,9 +194,9 @@ class AuthService {
           cpf,
           dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
           atleta: {
-            create: {
-              apelido,
-              ranking: 0,
+            upsert: {
+              create: { apelido, ranking: 0 },
+              update: { apelido },
             },
           },
         },
@@ -263,9 +263,9 @@ class AuthService {
           cpf,
           dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
           profissional: {
-            create: {
-              especialidade,
-              valorHora,
+            upsert: {
+              create: { especialidade, valorHora },
+              update: { especialidade, valorHora },
             },
           },
         },

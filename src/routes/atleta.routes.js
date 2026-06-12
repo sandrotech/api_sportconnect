@@ -11,7 +11,7 @@ const router = Router();
 
 // Configure S3 Client for MinIO
 const s3 = new S3Client({
-  endpoint: process.env.MINIO_SERVER_URL || 'http://localhost:9000',
+  endpoint: process.env.MINIO_SERVER_URL || 'http://127.0.0.1:9000',
   region: 'us-east-1',
   credentials: {
     accessKeyId: process.env.MINIO_ROOT_USER || 'admin',
@@ -21,7 +21,7 @@ const s3 = new S3Client({
 });
 
 // Initialize Bucket
-const bucketName = 'sportconnect';
+const bucketName = process.env.MINIO_BUCKET_NAME || 'sportconnect';
 (async () => {
   try {
     await s3.send(new CreateBucketCommand({ Bucket: bucketName }));

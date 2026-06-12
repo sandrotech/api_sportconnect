@@ -13,10 +13,51 @@ class AuthService {
     let user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      return { 
-        requireSignup: true, 
-        googleData: { email, name, picture } 
-      };
+      // Criar o usuário automaticamente com o papel selecionado
+      const tempPassword = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+      const dbRole = (role || 'ATLETA').toUpperCase();
+
+      user = await prisma.user.create({
+        data: {
+          name,
+          email,
+          password: hashedPassword,
+          role: dbRole,
+          avatar: picture,
+          cpf: null,
+          dataNascimento: null,
+          ...(dbRole === 'ARENA' && {
+            arena: {
+              create: {
+                nomeArena: name,
+                cnpj: '',
+              }
+            }
+          }),
+          ...(dbRole === 'ATLETA' && {
+            atleta: {
+              create: {
+                apelido: name.split(' ')[0],
+                ranking: 0,
+              }
+            }
+          }),
+          ...(dbRole === 'PROFISSIONAL' && {
+            profissional: {
+              create: {
+                especialidade: 'Outro',
+                valorHora: 0,
+              }
+            }
+          })
+        },
+        include: {
+          arena: true,
+          atleta: true,
+          profissional: true
+        }
+      });
     }
 
     const token = jwt.sign(

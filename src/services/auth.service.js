@@ -13,19 +13,10 @@ class AuthService {
     let user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      const defaultPassword = crypto.randomBytes(16).toString('hex');
-      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-      const roleUpper = (role || 'ATLETA').toUpperCase();
-
-      user = await prisma.user.create({
-        data: {
-          name,
-          email,
-          password: hashedPassword,
-          role: roleUpper,
-          avatar: picture,
-        }
-      });
+      return { 
+        requireSignup: true, 
+        googleData: { email, name, picture } 
+      };
     }
 
     const token = jwt.sign(

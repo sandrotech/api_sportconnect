@@ -171,6 +171,32 @@ export const updateGroup = async (req, res) => {
   }
 };
 
+export const updateGroupPhoto = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const admin = await requireAdmin(parseInt(id), userId, res);
+    if (!admin) return;
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhuma imagem enviada.' });
+    }
+
+    const photoUrl = req.file.location || req.file.path;
+
+    const updatedGroup = await prisma.group.update({
+      where: { id: parseInt(id) },
+      data: { photo: photoUrl },
+    });
+    
+    res.json(updatedGroup);
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: 'Erro ao atualizar foto do grupo.' });
+  }
+};
+
 export const deleteGroup = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;

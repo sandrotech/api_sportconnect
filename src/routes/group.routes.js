@@ -1,6 +1,7 @@
 import express from 'express';
 import * as groupController from '../controllers/group.controller.js';
 import authMiddleware from '../middlewares/auth.middleware.js';
+import upload from '../config/upload.js';
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.get('/mine/list', authMiddleware, groupController.getMyGroups);
 // CRUD
 router.post('/', authMiddleware, groupController.createGroup);
 router.put('/:id', authMiddleware, groupController.updateGroup);
+router.put('/:id/photo', authMiddleware, upload.single('photo'), groupController.updateGroupPhoto);
 router.delete('/:id', authMiddleware, groupController.deleteGroup);
 
 // Membros — solicitações

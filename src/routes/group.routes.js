@@ -4,19 +4,30 @@ import authMiddleware from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Rotas abertas
+// ─── Rotas públicas ───────────────────────────────────────────────────────────
 router.get('/', groupController.getAllGroups);
 router.get('/:id', groupController.getGroupById);
+router.get('/:id/members', groupController.getMembers);
 
-// Rotas protegidas
+// ─── Rotas protegidas ─────────────────────────────────────────────────────────
+router.get('/mine/list', authMiddleware, groupController.getMyGroups);
+
+// CRUD
 router.post('/', authMiddleware, groupController.createGroup);
 router.put('/:id', authMiddleware, groupController.updateGroup);
 router.delete('/:id', authMiddleware, groupController.deleteGroup);
 
-// Gerenciamento de membros
+// Membros — solicitações
 router.post('/:id/join', authMiddleware, groupController.joinGroupRequest);
-router.post('/:id/members/:memberId/approve', authMiddleware, groupController.approveJoinRequest);
 router.delete('/:id/leave', authMiddleware, groupController.leaveGroup);
+router.get('/:id/members/pending', authMiddleware, groupController.getPendingRequests);
+router.post('/:id/members/:memberId/approve', authMiddleware, groupController.approveJoinRequest);
+router.post('/:id/members/:memberId/reject', authMiddleware, groupController.rejectJoinRequest);
+router.post('/:id/members/:memberId/promote', authMiddleware, groupController.promoteMember);
 router.delete('/:id/members/:memberId', authMiddleware, groupController.removeMember);
+
+// Convites por link
+router.post('/:id/invite', authMiddleware, groupController.generateInviteLink);
+router.post('/join-invite/:token', authMiddleware, groupController.joinByInvite);
 
 export default router;

@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Enums Globais ───────────────────────────────────────────────────────────
+
 enum Role {
   ARENA
   ATLETA
@@ -19,24 +21,79 @@ enum ArenaStatus {
   REJECTED
 }
 
+// ─── Enums de Grupo ──────────────────────────────────────────────────────────
+
+enum GroupVisibility {
+  PUBLIC       // Qualquer atleta pode entrar direto
+  PRIVATE      // Somente por link de convite
+  REQUEST_ONLY // Solicita entrada, admin aprova
+}
+
+enum GroupMemberRole {
+  OWNER     // Dono do grupo — permissões totais
+  CO_OWNER  // Co-dono — tudo exceto deletar grupo
+  MEMBER    // Membro aprovado
+  GUEST     // Convidado aguardando aprovação
+}
+
+enum GroupMemberStatus {
+  PENDING  // Aguardando aprovação
+  APPROVED // Membro ativo
+  REJECTED // Solicitação negada
+  INVITED  // Convidado por link (aguardando aceite)
+  BANNED   // Banido do grupo
+}
+
+// ─── Enums de Sessão de Jogo ─────────────────────────────────────────────────
+
+enum GameSessionStatus {
+  DRAFT        // Rascunho (configurando)
+  OPEN         // Aberta para inscrição
+  CONFIRMED    // Confirmada
+  IN_PROGRESS  // Acontecendo agora
+  FINISHED     // Finalizada, avaliações liberadas
+  CANCELLED    // Cancelada
+}
+
+enum GamePlayerStatus {
+  STARTER   // Titular
+  RESERVE   // Reserva
+  CONFIRMED // Confirmou presença no dia
+  ABSENT    // Não foi
+  PROMOTED  // Reserva promovido a titular
+}
+
+enum GameVisibility {
+  GROUP_ONLY // Somente membros do grupo
+  PUBLIC     // Aberta para qualquer atleta da plataforma
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
 model User {
-  id           Int           @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   name         String
-  email        String        @unique
+  email        String    @unique
   password     String
   role         Role
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime  @default(now())
   avatar       String?
   banner       String?
-  cpf          String?       @unique
+  cpf          String?   @unique
   dataNascimento DateTime?
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
-  
+  walletBalance        Int       @default(0)
+
   arena        Arena?
   atleta       Atleta?
   profissional Profissional?
   groups       GroupMember[]
+  gamePlayers            GamePlayer[]
+  ratingsGiven           GameRating[]         @relation("RatingGiven")
+  ratingsReceived        GameRating[]         @relation("RatingReceived")
+  gameSessionsCreated    GameSession[]        @relation("GameSessionCreator")
+  walletTransactions     WalletTransaction[]
 }
 
 model Arena {
@@ -45,8 +102,9 @@ model Arena {
   nomeArena String
   cnpj      String
   status    ArenaStatus @default(PENDING)
-  
-  user      User        @relation(fields: [userId], references: [id])
+
+  user         User          @relation(fields: [userId], references: [id])
+  gameSessions GameSession[]
 }
 
 model Atleta {
@@ -59,7 +117,7 @@ model Atleta {
   esportes     String?
   nivel        String?
   notificacoes String?
-  
+
   user    User   @relation(fields: [userId], references: [id])
 }
 
@@ -68,42 +126,112 @@ model Profissional {
   userId        Int     @unique
   especialidade String
   valorHora     Decimal
-  
+
   user          User    @relation(fields: [userId], references: [id])
 }
 
+// ─── Grupos ──────────────────────────────────────────────────────────────────
+
 model Group {
-  id          Int           @id @default(autoincrement())
-  name        String
-  description String?
-  city        String
-  createdAt   DateTime      @default(now())
-  
-  members     GroupMember[]
-  schedules   GameSchedule[]
+  id           Int             @id @default(autoincrement())
+  name         String
+  description  String?
+  city         String
+  sport        String
+  nivel        String?         // Nível mínimo: Iniciante, Intermediário, Avançado
+  maxMembers   Int             @default(20)
+  photo        String?
+  visibility   GroupVisibility @default(REQUEST_ONLY)
+  inviteToken  String?         @unique
+  createdAt    DateTime        @default(now())
+
+  members      GroupMember[]
+  gameSessions GameSession[]
 }
 
 model GroupMember {
-  id        Int      @id @default(autoincrement())
-  groupId   Int
-  userId    Int
-  role      String   @default("MEMBER") // e.g., ADMIN, MEMBER
-  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  joinedAt  DateTime @default(now())
-  
-  group     Group    @relation(fields: [groupId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  id       Int               @id @default(autoincrement())
+  groupId  Int
+  userId   Int
+  role     GroupMemberRole   @default(GUEST)
+  status   GroupMemberStatus @default(PENDING)
+  joinedAt DateTime          @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
 
   @@unique([groupId, userId])
 }
 
-model GameSchedule {
+// ─── Sessões de Jogo ─────────────────────────────────────────────────────────
+
+model GameSession {
+  id                  Int               @id @default(autoincrement())
+  groupId             Int
+  arenaId             Int?
+  createdByUserId     Int
+  title               String
+  description         String?
+  date                DateTime
+  maxStarters         Int               @default(10)
+  maxReserves         Int               @default(5)
+  visibility          GameVisibility    @default(GROUP_ONLY)
+  status              GameSessionStatus @default(DRAFT)
+  cancelDeadlineHours Int               @default(24)
+  autoPromoteReserves Boolean           @default(true)
+  fichasPerPlayer     Int               @default(1)
+  createdAt           DateTime          @default(now())
+
+  group     Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  arena     Arena?       @relation(fields: [arenaId], references: [id])
+  createdBy User         @relation("GameSessionCreator", fields: [createdByUserId], references: [id])
+  players   GamePlayer[]
+  ratings   GameRating[]
+}
+
+model GamePlayer {
+  id            Int              @id @default(autoincrement())
+  gameSessionId Int
+  userId        Int
+  status        GamePlayerStatus @default(RESERVE)
+  confirmedAt   DateTime?
+  fichaDeducted Boolean          @default(false)
+  joinedAt      DateTime         @default(now())
+
+  gameSession GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@unique([gameSessionId, userId])
+}
+
+// ─── Avaliações Pós-Jogo ─────────────────────────────────────────────────────
+
+model GameRating {
+  id            Int      @id @default(autoincrement())
+  gameSessionId Int
+  fromUserId    Int
+  toUserId      Int
+  score         Int      // 1 a 5
+  comment       String?
+  createdAt     DateTime @default(now())
+
+  gameSession GameSession @relation(fields: [gameSessionId], references: [id])
+  fromUser    User        @relation("RatingGiven", fields: [fromUserId], references: [id])
+  toUser      User        @relation("RatingReceived", fields: [toUserId], references: [id])
+
+  @@unique([gameSessionId, fromUserId, toUserId])
+}
+
+// ─── Carteira / Fichas ───────────────────────────────────────────────────────
+
+model WalletTransaction {
   id          Int      @id @default(autoincrement())
-  groupId     Int
-  date        DateTime
-  location    String
-  description String?
+  userId      Int
+  amount      Int      // Positivo = crédito, Negativo = débito
+  description String
+  type        String   // PURCHASE | GAME_JOIN | GAME_CANCEL_REFUND | ADMIN_CREDIT
+  referenceId Int?     // ID da GameSession se aplicável
   createdAt   DateTime @default(now())
-  
-  group       Group    @relation(fields: [groupId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
 }

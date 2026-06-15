@@ -28,6 +28,7 @@ const router = Router();
  *       403:
  *         description: Acesso proibido (role incorreta)
  */
+router.get('/', arenaController.getAll); // Listar arenas aprovadas (público)
 router.get('/me', authMiddleware, roleMiddleware(['ARENA']), arenaController.getMe);
 
 export default router;

@@ -11,6 +11,9 @@ import atletaRoutes from './routes/atleta.routes.js';
 import profissionalRoutes from './routes/profissional.routes.js';
 import groupRoutes from './routes/group.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import gameSessionRoutes from './routes/gameSession.routes.js';
+import gameRatingRoutes from './routes/gameRating.routes.js';
+import walletRoutes from './routes/wallet.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,6 +45,11 @@ app.use('/atleta', atletaRoutes);
 app.use('/profissional', profissionalRoutes);
 app.use('/groups', groupRoutes);
 app.use('/admin-hub', adminRoutes);
+app.use('/wallet', walletRoutes);
+// Game Sessions aninhadas ao grupo: /groups/:groupId/sessions
+app.use('/groups/:groupId/sessions', gameSessionRoutes);
+// Ratings aninhadas à sessão: /sessions/:sessionId/ratings
+app.use('/sessions/:sessionId/ratings', gameRatingRoutes);
 
 // Base route
 app.get('/', (req, res) => {

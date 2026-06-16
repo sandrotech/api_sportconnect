@@ -111,7 +111,7 @@ class AuthService {
     };
   }
 
-  async registerArena({ name, email, password, nomeArena, cnpj, razaoSocial, bairro, estado, endereco, logo }) {
+  async registerArena({ name, email, password, nomeArena, cnpj, razaoSocial, cep, endereco, numero, bairro, cidade, estado, telefone, logo }) {
     let user = await prisma.user.findUnique({ where: { email }, include: { arena: true } });
 
     if (user) {
@@ -129,8 +129,8 @@ class AuthService {
           avatar: logo || user.avatar,
           arena: {
             upsert: {
-              create: { nomeArena, cnpj, razaoSocial, bairro, estado, endereco },
-              update: { nomeArena, cnpj, razaoSocial, bairro, estado, endereco },
+              create: { nomeArena, cnpj, razaoSocial, cep, endereco, numero, bairro, cidade, estado, telefone },
+              update: { nomeArena, cnpj, razaoSocial, cep, endereco, numero, bairro, cidade, estado, telefone },
             },
           },
         },

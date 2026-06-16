@@ -103,8 +103,12 @@ model Arena {
   cnpj        String
   razaoSocial String @default("")
   bairro      String @default("")
+  cidade      String @default("")
   estado      String @default("")
   endereco    String @default("")
+  cep         String @default("")
+  numero      String @default("")
+  telefone    String @default("")
   status      ArenaStatus @default(PENDING)
 
   user         User          @relation(fields: [userId], references: [id])

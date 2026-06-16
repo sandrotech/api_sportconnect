@@ -29,7 +29,7 @@ class AuthController {
 
   async registerArena(req, res) {
     try {
-      const { email, password, nomeArena, cnpj, razaoSocial, bairro, estado, endereco } = req.body;
+      const { email, password, nomeArena, cnpj, razaoSocial, cep, endereco, numero, bairro, cidade, estado, telefone } = req.body;
       const logo = req.file ? req.file.location : null;
       
       const payload = {
@@ -39,9 +39,13 @@ class AuthController {
         nomeArena,
         cnpj,
         razaoSocial,
-        bairro,
-        estado,
+        cep,
         endereco,
+        numero,
+        bairro,
+        cidade,
+        estado,
+        telefone,
         logo
       };
       const data = await authService.registerArena(payload);

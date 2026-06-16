@@ -98,21 +98,12 @@ class AuthService {
     };
   }
 
-  async registerArena({ name, email, password, cpf, dataNascimento, nomeArena, cnpj }) {
-    let user = await prisma.user.findUnique({ where: { email } });
+  async registerArena({ name, email, password, nomeArena, cnpj }) {
+    let user = await prisma.user.findUnique({ where: { email }, include: { arena: true } });
 
     if (user) {
-      if (user.cpf) {
+      if (user.arena && user.arena.cnpj) {
         throw new Error('Email já cadastrado');
-      }
-
-      if (cpf) {
-        const existingCpf = await prisma.user.findFirst({
-          where: { cpf, NOT: { id: user.id } }
-        });
-        if (existingCpf) {
-          throw new Error('CPF já cadastrado');
-        }
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -122,8 +113,6 @@ class AuthService {
           name,
           password: hashedPassword,
           role: 'ARENA',
-          cpf,
-          dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
           arena: {
             upsert: {
               create: { nomeArena, cnpj },
@@ -136,14 +125,6 @@ class AuthService {
       return user;
     }
 
-    // Verificar se CPF já existe para novo usuário
-    if (cpf) {
-      const existingCpf = await prisma.user.findUnique({ where: { cpf } });
-      if (existingCpf) {
-        throw new Error('CPF já cadastrado');
-      }
-    }
-    
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await prisma.user.create({
@@ -152,8 +133,6 @@ class AuthService {
         email,
         password: hashedPassword,
         role: 'ARENA',
-        cpf,
-        dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
         arena: {
           create: {
             nomeArena,

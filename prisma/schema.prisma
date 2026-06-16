@@ -97,11 +97,15 @@ model User {
 }
 
 model Arena {
-  id        Int         @id @default(autoincrement())
-  userId    Int         @unique
-  nomeArena String
-  cnpj      String
-  status    ArenaStatus @default(PENDING)
+  id          Int         @id @default(autoincrement())
+  userId      Int         @unique
+  nomeArena   String
+  cnpj        String
+  razaoSocial String @default("")
+  bairro      String @default("")
+  estado      String @default("")
+  endereco    String @default("")
+  status      ArenaStatus @default(PENDING)
 
   user         User          @relation(fields: [userId], references: [id])
   gameSessions GameSession[]

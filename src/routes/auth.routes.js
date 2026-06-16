@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import authController from '../controllers/auth.controller.js';
 import authMiddleware from '../middlewares/auth.middleware.js';
+import upload from '../config/upload.js';
 
 const router = Router();
 
@@ -84,18 +85,19 @@ router.post('/google', authController.loginWithGoogle);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
- *               - name
  *               - email
  *               - password
  *               - nomeArena
  *               - cnpj
+ *               - razaoSocial
+ *               - bairro
+ *               - estado
+ *               - endereco
  *             properties:
- *               name:
- *                 type: string
  *               email:
  *                 type: string
  *               password:
@@ -104,13 +106,24 @@ router.post('/google', authController.loginWithGoogle);
  *                 type: string
  *               cnpj:
  *                 type: string
+ *               razaoSocial:
+ *                 type: string
+ *               bairro:
+ *                 type: string
+ *               estado:
+ *                 type: string
+ *               endereco:
+ *                 type: string
+ *               logo:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Arena registrada com sucesso
  *       400:
  *         description: Erro na requisição
  */
-router.post('/register/arena', authController.registerArena);
+router.post('/register/arena', upload.single('logo'), authController.registerArena);
 
 /**
  * @swagger

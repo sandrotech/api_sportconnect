@@ -29,8 +29,23 @@ class AuthController {
 
   async registerArena(req, res) {
     try {
-      const user = await authService.registerArena(req.body);
-      return res.status(201).json(user);
+      const { email, password, nomeArena, cnpj, razaoSocial, bairro, estado, endereco } = req.body;
+      const logo = req.file ? req.file.location : null;
+      
+      const payload = {
+        name: nomeArena,
+        email,
+        password,
+        nomeArena,
+        cnpj,
+        razaoSocial,
+        bairro,
+        estado,
+        endereco,
+        logo
+      };
+      const data = await authService.registerArena(payload);
+      return res.status(201).json(data);
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }

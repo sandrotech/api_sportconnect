@@ -66,14 +66,22 @@ class AuthService {
       { expiresIn: '1d' }
     );
 
+    let status = 'APPROVED';
+    if (user.role === 'ARENA' && user.arena) {
+      status = user.arena[0]?.status || user.arena.status || 'PENDING';
+    }
+
     return { 
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isComplete: !!user.cpf }, 
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isComplete: !!user.cpf, status }, 
       token 
     };
   }
 
   async login(email, password) {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ 
+      where: { email },
+      include: { arena: true }
+    });
 
     if (!user) {
       throw new Error('Usuário não encontrado');
@@ -92,8 +100,13 @@ class AuthService {
       { expiresIn: '1d' }
     );
 
+    let status = 'APPROVED';
+    if (user.role === 'ARENA' && user.arena) {
+      status = user.arena.status || 'PENDING';
+    }
+
     return { 
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isComplete: !!user.cpf }, 
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isComplete: !!user.cpf, status }, 
       token 
     };
   }

@@ -14,6 +14,9 @@ import adminRoutes from './routes/admin.routes.js';
 import gameSessionRoutes from './routes/gameSession.routes.js';
 import gameRatingRoutes from './routes/gameRating.routes.js';
 import walletRoutes from './routes/wallet.routes.js';
+import quadraRoutes from './routes/quadra.routes.js';
+import horarioRoutes from './routes/horario.routes.js';
+import reservaRoutes from './routes/reserva.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,6 +49,9 @@ app.use('/profissional', profissionalRoutes);
 app.use('/groups', groupRoutes);
 app.use('/admin-hub', adminRoutes);
 app.use('/wallet', walletRoutes);
+app.use('/quadras', quadraRoutes);
+app.use('/horarios', horarioRoutes);
+app.use('/reservas', reservaRoutes);
 // Game Sessions aninhadas ao grupo: /groups/:groupId/sessions
 app.use('/groups/:groupId/sessions', gameSessionRoutes);
 // Ratings aninhadas à sessão: /sessions/:sessionId/ratings

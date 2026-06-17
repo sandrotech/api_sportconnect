@@ -30,5 +30,6 @@ const router = Router();
  */
 router.get('/', arenaController.getAll); // Listar arenas aprovadas (público)
 router.get('/me', authMiddleware, roleMiddleware(['ARENA']), arenaController.getMe);
+router.get('/dashboard', authMiddleware, roleMiddleware(['ARENA']), arenaController.getDashboard);
 
 export default router;

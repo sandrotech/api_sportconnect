@@ -94,6 +94,7 @@ model User {
   ratingsReceived        GameRating[]         @relation("RatingReceived")
   gameSessionsCreated    GameSession[]        @relation("GameSessionCreator")
   walletTransactions     WalletTransaction[]
+  reservas               Reserva[]            @relation("ReservasAtleta")
 }
 
 model Arena {
@@ -113,6 +114,53 @@ model Arena {
 
   user         User          @relation(fields: [userId], references: [id])
   gameSessions GameSession[]
+  quadras      Quadra[]
+}
+
+model Quadra {
+  id        Int      @id @default(autoincrement())
+  arenaId   Int
+  nome      String
+  esporte   String
+  descricao String?
+  ativa     Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  arena    Arena         @relation(fields: [arenaId], references: [id], onDelete: Cascade)
+  horarios HorarioSlot[]
+  reservas Reserva[]
+}
+
+model HorarioSlot {
+  id         Int      @id @default(autoincrement())
+  quadraId   Int
+  diaSemana  String   // "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Domingo"
+  horaInicio Int      // 6..22
+  disponivel Boolean  @default(true)
+  preco      Decimal?
+  esporte    String?
+  duracao    Int      @default(60)
+  intervalo  Int      @default(10)
+
+  quadra   Quadra    @relation(fields: [quadraId], references: [id], onDelete: Cascade)
+  reservas Reserva[]
+
+  @@unique([quadraId, diaSemana, horaInicio])
+}
+
+model Reserva {
+  id            Int      @id @default(autoincrement())
+  quadraId      Int
+  horarioSlotId Int
+  atletaUserId  Int
+  data          DateTime
+  status        String   @default("PENDENTE") // PENDENTE | CONFIRMADA | CANCELADA
+  valorPago     Decimal?
+  createdAt     DateTime @default(now())
+
+  quadra      Quadra      @relation(fields: [quadraId], references: [id])
+  horarioSlot HorarioSlot @relation(fields: [horarioSlotId], references: [id])
+  atletaUser  User        @relation("ReservasAtleta", fields: [atletaUserId], references: [id])
 }
 
 model Atleta {

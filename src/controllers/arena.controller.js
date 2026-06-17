@@ -40,23 +40,47 @@ class ArenaController {
 
       const quadraIds = arena.quadras.map(q => q.id);
 
-      const [reservasPendentes, reservasSemana, reservasMes, ultimasReservas, totalHorarios] = await Promise.all([
+      const [reservasPendentes, reservasSemana, reservasConfirmadas, totalHorarios, todasReservas] = await Promise.all([
         prisma.reserva.count({ where: { quadraId: { in: quadraIds }, status: 'PENDENTE' } }),
         prisma.reserva.count({ where: { quadraId: { in: quadraIds }, data: { gte: inicioSemana }, status: { in: ['PENDENTE', 'CONFIRMADA'] } } }),
-        prisma.reserva.findMany({ where: { quadraId: { in: quadraIds }, data: { gte: inicioMes }, status: 'CONFIRMADA' }, select: { valorPago: true } }),
         prisma.reserva.findMany({
-          where: { quadraId: { in: quadraIds } },
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-          include: {
-            quadra: { select: { nome: true, esporte: true } },
-            atletaUser: { select: { id: true, name: true, avatar: true } }
-          }
+          where: { quadraId: { in: quadraIds }, data: { gte: inicioMes }, status: 'CONFIRMADA' },
+          select: { valorPago: true, esporte: true }
         }),
         prisma.horarioSlot.count({ where: { quadraId: { in: quadraIds }, disponivel: true } }),
+        prisma.reserva.findMany({
+          where: { quadraId: { in: quadraIds } },
+          select: { valorPago: true, esporte: true, status: true }
+        })
       ]);
 
-      const faturamentoMes = reservasMes.reduce((acc, r) => acc + Number(r.valorPago || 0), 0);
+      const faturamentoMes = reservasConfirmadas.reduce((acc, r) => acc + Number(r.valorPago || 0), 0);
+
+      // Agrupar por modalidade/esporte para relatórios
+      const statsPorEsporte = {};
+      todasReservas.forEach(r => {
+        const esp = r.esporte || 'Outros';
+        if (!statsPorEsporte[esp]) {
+          statsPorEsporte[esp] = { esporte: esp, reservas: 0, faturamento: 0 };
+        }
+        statsPorEsporte[esp].reservas += 1;
+        if (r.status === 'CONFIRMADA') {
+          statsPorEsporte[esp].faturamento += Number(r.valorPago || 0);
+        }
+      });
+
+      const relatorioEsportes = Object.values(statsPorEsporte);
+
+      // Buscar últimas reservas ordenadas
+      const ultimasReservas = await prisma.reserva.findMany({
+        where: { quadraId: { in: quadraIds } },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        include: {
+          quadra: { select: { nome: true, esportes: true } },
+          atletaUser: { select: { id: true, name: true, avatar: true } }
+        }
+      });
 
       return res.json({
         totalQuadras: arena.quadras.length,
@@ -64,6 +88,7 @@ class ArenaController {
         reservasPendentes,
         reservasSemana,
         faturamentoMes,
+        relatorioEsportes,
         ultimasReservas,
       });
     } catch (error) {

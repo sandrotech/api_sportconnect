@@ -17,19 +17,19 @@ class QuadraService {
     });
   }
 
-  async create(arenaUserId, { nome, esporte, descricao }) {
+  async create(arenaUserId, { nome, esportes, descricao }) {
     const arena = await prisma.arena.findUnique({ where: { userId: arenaUserId } });
     if (!arena) throw new Error('Arena não encontrada');
     return prisma.quadra.create({
-      data: { arenaId: arena.id, nome, esporte, descricao },
+      data: { arenaId: arena.id, nome, esportes, descricao },
     });
   }
 
-  async update(id, arenaUserId, { nome, esporte, descricao }) {
+  async update(id, arenaUserId, { nome, esportes, descricao }) {
     const quadra = await this._verificarPosse(id, arenaUserId);
     return prisma.quadra.update({
       where: { id: quadra.id },
-      data: { nome, esporte, descricao },
+      data: { nome, esportes, descricao },
     });
   }
 

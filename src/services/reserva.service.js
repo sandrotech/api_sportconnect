@@ -1,7 +1,7 @@
 import prisma from '../config/prisma.js';
 
 class ReservaService {
-  async criar(atletaUserId, { quadraId, horarioSlotId, data }) {
+  async criar(atletaUserId, { quadraId, horarioSlotId, data, esporte }) {
     // Verifica se o slot existe e está disponível
     const slot = await prisma.horarioSlot.findUnique({
       where: { id: Number(horarioSlotId) },
@@ -31,10 +31,11 @@ class ReservaService {
         horarioSlotId: Number(horarioSlotId),
         atletaUserId,
         data: new Date(data),
+        esporte,
         valorPago: slot.preco,
         status: 'PENDENTE',
       },
-      include: { quadra: { select: { nome: true, esporte: true } }, horarioSlot: true },
+      include: { quadra: { select: { nome: true, esportes: true } }, horarioSlot: true },
     });
   }
 
@@ -42,7 +43,7 @@ class ReservaService {
     return prisma.reserva.findMany({
       where: { atletaUserId },
       include: {
-        quadra: { select: { nome: true, esporte: true, arena: { select: { nomeArena: true, endereco: true, cidade: true } } } },
+        quadra: { select: { nome: true, esportes: true, arena: { select: { nomeArena: true, endereco: true, cidade: true } } } },
         horarioSlot: true,
       },
       orderBy: { data: 'desc' },
@@ -55,7 +56,7 @@ class ReservaService {
     return prisma.reserva.findMany({
       where: { quadra: { arenaId: arena.id } },
       include: {
-        quadra: { select: { nome: true, esporte: true } },
+        quadra: { select: { nome: true, esportes: true } },
         horarioSlot: true,
         atletaUser: { select: { id: true, name: true, email: true, avatar: true } },
       },

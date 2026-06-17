@@ -121,7 +121,7 @@ model Quadra {
   id        Int      @id @default(autoincrement())
   arenaId   Int
   nome      String
-  esporte   String
+  esportes  String[]
   descricao String?
   ativa     Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -155,6 +155,7 @@ model Reserva {
   atletaUserId  Int
   data          DateTime
   status        String   @default("PENDENTE") // PENDENTE | CONFIRMADA | CANCELADA
+  esporte       String?
   valorPago     Decimal?
   createdAt     DateTime @default(now())
 

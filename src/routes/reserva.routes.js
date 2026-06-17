@@ -12,6 +12,7 @@ router.post('/', roleMiddleware(['ATLETA']), reservaController.criar);
 router.get('/minhas', roleMiddleware(['ATLETA']), reservaController.minhas);
 
 // Arena
+router.post('/manual', roleMiddleware(['ARENA']), reservaController.criarManual);
 router.get('/arena', roleMiddleware(['ARENA']), reservaController.daArena);
 router.patch('/:id/status', roleMiddleware(['ARENA']), reservaController.atualizarStatus);
 

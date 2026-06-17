@@ -109,8 +109,10 @@ model Arena {
   endereco    String @default("")
   cep         String @default("")
   numero      String @default("")
-  telefone    String @default("")
-  status      ArenaStatus @default(PENDING)
+  telefone       String @default("")
+  horaAbertura   String @default("08:00")
+  horaFechamento String @default("22:00")
+  status         ArenaStatus @default(PENDING)
 
   user         User          @relation(fields: [userId], references: [id])
   gameSessions GameSession[]
@@ -134,8 +136,8 @@ model Quadra {
 model HorarioSlot {
   id         Int      @id @default(autoincrement())
   quadraId   Int
-  diaSemana  String   // "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Domingo"
-  horaInicio Int      // 6..22
+  data       String   // Formato YYYY-MM-DD
+  horaInicio Int      // 0..23
   disponivel Boolean  @default(true)
   preco      Decimal?
   esporte    String?
@@ -145,23 +147,26 @@ model HorarioSlot {
   quadra   Quadra    @relation(fields: [quadraId], references: [id], onDelete: Cascade)
   reservas Reserva[]
 
-  @@unique([quadraId, diaSemana, horaInicio])
+  @@unique([quadraId, data, horaInicio])
 }
 
 model Reserva {
-  id            Int      @id @default(autoincrement())
-  quadraId      Int
-  horarioSlotId Int
-  atletaUserId  Int
-  data          DateTime
-  status        String   @default("PENDENTE") // PENDENTE | CONFIRMADA | CANCELADA
-  esporte       String?
-  valorPago     Decimal?
-  createdAt     DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  quadraId        Int
+  horarioSlotId   Int
+  atletaUserId    Int?
+  cpfCliente      String?
+  nomeCliente     String?
+  telefoneCliente String?
+  data            DateTime
+  status          String   @default("PENDENTE") // PENDENTE | CONFIRMADA | CANCELADA
+  esporte         String?
+  valorPago       Decimal?
+  createdAt       DateTime @default(now())
 
   quadra      Quadra      @relation(fields: [quadraId], references: [id])
   horarioSlot HorarioSlot @relation(fields: [horarioSlotId], references: [id])
-  atletaUser  User        @relation("ReservasAtleta", fields: [atletaUserId], references: [id])
+  atletaUser  User?       @relation("ReservasAtleta", fields: [atletaUserId], references: [id])
 }
 
 model Atleta {

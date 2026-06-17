@@ -90,10 +90,25 @@ class ArenaController {
         faturamentoMes,
         relatorioEsportes,
         ultimasReservas,
+        horaAbertura: arena.horaAbertura,
+        horaFechamento: arena.horaFechamento,
       });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Erro ao carregar dashboard' });
+    }
+  }
+
+  async updateConfig(req, res) {
+    try {
+      const { horaAbertura, horaFechamento } = req.body;
+      const arena = await prisma.arena.update({
+        where: { userId: req.user.id },
+        data: { horaAbertura, horaFechamento }
+      });
+      return res.json({ horaAbertura: arena.horaAbertura, horaFechamento: arena.horaFechamento });
+    } catch (error) {
+      return res.status(500).json({ error: 'Erro ao atualizar configurações' });
     }
   }
 }

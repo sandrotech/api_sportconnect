@@ -64,4 +64,15 @@ router.get('/me', authMiddleware, roleMiddleware(['ATLETA']), atletaController.g
  */
 router.put('/me', authMiddleware, roleMiddleware(['ATLETA']), upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), atletaController.updateMe);
 
+/**
+ * @swagger
+ * /atleta/cpf/{cpf}:
+ *   get:
+ *     summary: Obter atleta por CPF (para Arena usar na Reserva Manual)
+ *     tags: [Atleta]
+ *     security:
+ *       - BearerAuth: []
+ */
+router.get('/cpf/:cpf', authMiddleware, roleMiddleware(['ARENA']), atletaController.getByCpf);
+
 export default router;

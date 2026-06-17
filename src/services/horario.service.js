@@ -4,21 +4,39 @@ class HorarioService {
   async getByQuadra(quadraId) {
     return prisma.horarioSlot.findMany({
       where: { quadraId: Number(quadraId) },
-      orderBy: [{ diaSemana: 'asc' }, { horaInicio: 'asc' }],
+      include: {
+        reservas: {
+          where: { status: { in: ['PENDENTE', 'CONFIRMADA'] } },
+          select: { status: true }
+        }
+      },
+      orderBy: [{ data: 'asc' }, { horaInicio: 'asc' }],
     });
   }
 
-  async upsertSlot(arenaUserId, { quadraId, diaSemana, horaInicio, disponivel, preco, esporte, duracao, intervalo }) {
+  async upsertSlot(arenaUserId, { quadraId, data, horaInicio, disponivel, preco, esporte, duracao, intervalo }) {
     await this._verificarPosseQuadra(quadraId, arenaUserId);
+    
+    // Verifica se já existe e tem reservas antes de bloquear
+    if (!disponivel) {
+      const existing = await prisma.horarioSlot.findUnique({
+        where: { quadraId_data_horaInicio: { quadraId: Number(quadraId), data, horaInicio: Number(horaInicio) } },
+        include: { reservas: { where: { status: { in: ['PENDENTE', 'CONFIRMADA'] } } } }
+      });
+      if (existing && existing.reservas.length > 0) {
+        throw new Error(`O horário das ${horaInicio}:00 possui reservas ativas e não pode ser bloqueado.`);
+      }
+    }
+
     return prisma.horarioSlot.upsert({
-      where: { quadraId_diaSemana_horaInicio: { quadraId: Number(quadraId), diaSemana, horaInicio: Number(horaInicio) } },
+      where: { quadraId_data_horaInicio: { quadraId: Number(quadraId), data, horaInicio: Number(horaInicio) } },
       update: { disponivel, preco: preco ?? null, esporte: esporte ?? null, duracao: duracao ?? 60, intervalo: intervalo ?? 10 },
-      create: { quadraId: Number(quadraId), diaSemana, horaInicio: Number(horaInicio), disponivel, preco: preco ?? null, esporte: esporte ?? null, duracao: duracao ?? 60, intervalo: intervalo ?? 10 },
+      create: { quadraId: Number(quadraId), data, horaInicio: Number(horaInicio), disponivel, preco: preco ?? null, esporte: esporte ?? null, duracao: duracao ?? 60, intervalo: intervalo ?? 10 },
     });
   }
 
   async saveLote(arenaUserId, slots) {
-    // slots: Array<{ quadraId, diaSemana, horaInicio, disponivel, preco, esporte, duracao, intervalo }>
+    // slots: Array<{ quadraId, data, horaInicio, disponivel, preco, esporte, duracao, intervalo }>
     const results = [];
     for (const slot of slots) {
       const saved = await this.upsertSlot(arenaUserId, slot);
@@ -28,9 +46,17 @@ class HorarioService {
   }
 
   async deleteSlot(id, arenaUserId) {
-    const slot = await prisma.horarioSlot.findUnique({ where: { id: Number(id) } });
+    const slot = await prisma.horarioSlot.findUnique({ 
+      where: { id: Number(id) },
+      include: { reservas: { where: { status: { in: ['PENDENTE', 'CONFIRMADA'] } } } }
+    });
     if (!slot) throw new Error('Slot não encontrado');
     await this._verificarPosseQuadra(slot.quadraId, arenaUserId);
+    
+    if (slot.reservas.length > 0) {
+      throw new Error('Este horário possui reservas ativas e não pode ser apagado. Cancele a reserva primeiro.');
+    }
+
     return prisma.horarioSlot.delete({ where: { id: Number(id) } });
   }
 
@@ -38,7 +64,7 @@ class HorarioService {
     return prisma.horarioSlot.findMany({
       where: { quadra: { arenaId: Number(arenaId), ativa: true }, disponivel: true },
       include: { quadra: { select: { id: true, nome: true, esporte: true } } },
-      orderBy: [{ diaSemana: 'asc' }, { horaInicio: 'asc' }],
+      orderBy: [{ data: 'asc' }, { horaInicio: 'asc' }],
     });
   }
 

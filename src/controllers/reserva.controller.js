@@ -10,6 +10,15 @@ class ReservaController {
     }
   }
 
+  async criarManual(req, res) {
+    try {
+      const reserva = await reservaService.criarManual(req.user.id, req.body);
+      return res.status(201).json(reserva);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+
   async minhas(req, res) {
     try {
       const reservas = await reservaService.minhas(req.user.id);

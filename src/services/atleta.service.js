@@ -78,6 +78,26 @@ class AtletaService {
 
     return updatedProfile;
   }
+
+  async getByCpf(cpf) {
+    const user = await prisma.user.findUnique({
+      where: { cpf },
+      include: {
+        atleta: true
+      }
+    });
+
+    if (!user || user.role !== 'ATLETA') {
+      throw new Error('Atleta não encontrado com este CPF');
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      telefone: user.atleta?.telefone || '',
+      cpf: user.cpf,
+    };
+  }
 }
 
 export default new AtletaService();

@@ -24,6 +24,15 @@ class AtletaController {
       return res.status(400).json({ error: error.message });
     }
   }
+
+  async getByCpf(req, res) {
+    try {
+      const atleta = await atletaService.getByCpf(req.params.cpf);
+      return res.json(atleta);
+    } catch (error) {
+      return res.status(404).json({ error: error.message });
+    }
+  }
 }
 
 export default new AtletaController();

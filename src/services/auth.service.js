@@ -67,12 +67,15 @@ class AuthService {
     );
 
     let status = 'APPROVED';
+    let isComplete = !!user.cpf;
+
     if (user.role === 'ARENA' && user.arena) {
       status = user.arena[0]?.status || user.arena.status || 'PENDING';
+      isComplete = !!(user.arena[0]?.cnpj || user.arena.cnpj);
     }
 
     return { 
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isComplete: !!user.cpf, status }, 
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isComplete, status }, 
       token 
     };
   }
@@ -101,12 +104,15 @@ class AuthService {
     );
 
     let status = 'APPROVED';
+    let isComplete = !!user.cpf;
+
     if (user.role === 'ARENA' && user.arena) {
-      status = user.arena.status || 'PENDING';
+      status = user.arena[0]?.status || user.arena.status || 'PENDING';
+      isComplete = !!(user.arena[0]?.cnpj || user.arena.cnpj);
     }
 
     return { 
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isComplete: !!user.cpf, status }, 
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isComplete, status }, 
       token 
     };
   }

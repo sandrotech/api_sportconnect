@@ -92,6 +92,7 @@ class ArenaController {
         ultimasReservas,
         horaAbertura: arena.horaAbertura,
         horaFechamento: arena.horaFechamento,
+        esportes: arena.esportes,
       });
     } catch (error) {
       console.error(error);

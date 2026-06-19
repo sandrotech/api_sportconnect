@@ -112,6 +112,7 @@ model Arena {
   telefone       String @default("")
   horaAbertura   String @default("08:00")
   horaFechamento String @default("22:00")
+  esportes       String[] @default([])
   status         ArenaStatus @default(PENDING)
 
   user         User          @relation(fields: [userId], references: [id])

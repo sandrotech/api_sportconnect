@@ -101,12 +101,12 @@ class ArenaController {
 
   async updateConfig(req, res) {
     try {
-      const { horaAbertura, horaFechamento } = req.body;
+      const { horaAbertura, horaFechamento, esportes } = req.body;
       const arena = await prisma.arena.update({
         where: { userId: req.user.id },
-        data: { horaAbertura, horaFechamento }
+        data: { horaAbertura, horaFechamento, esportes }
       });
-      return res.json({ horaAbertura: arena.horaAbertura, horaFechamento: arena.horaFechamento });
+      return res.json({ horaAbertura: arena.horaAbertura, horaFechamento: arena.horaFechamento, esportes: arena.esportes });
     } catch (error) {
       return res.status(500).json({ error: 'Erro ao atualizar configurações' });
     }

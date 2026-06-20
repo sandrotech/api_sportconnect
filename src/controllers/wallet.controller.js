@@ -37,6 +37,17 @@ export const getTransactions = async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar transações.' });
   }
 };
+export const getPackages = async (req, res) => {
+  try {
+    const packages = await prisma.tokenPackage.findMany({
+      orderBy: { tokens: 'asc' },
+    });
+    res.json(packages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao buscar pacotes de fichas.' });
+  }
+};
 
 // Stub para compra de fichas (integração futura com gateway de pagamento)
 export const purchaseFichas = async (req, res) => {

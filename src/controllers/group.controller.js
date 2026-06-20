@@ -412,6 +412,36 @@ export const removeMember = async (req, res) => {
   }
 };
 
+export const banMember = async (req, res) => {
+  const { id, memberId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const admin = await requireAdmin(parseInt(id), userId, res);
+    if (!admin) return;
+
+    const memberToBan = await prisma.groupMember.findUnique({
+      where: { id: parseInt(memberId) },
+    });
+    if (!memberToBan) {
+      return res.status(404).json({ error: 'Membro não encontrado.' });
+    }
+
+    if (memberToBan.role === 'OWNER') {
+      return res.status(403).json({ error: 'Não é possível banir o dono do grupo.' });
+    }
+
+    const updated = await prisma.groupMember.update({
+      where: { id: parseInt(memberId) },
+      data: { status: 'BANNED' },
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: 'Erro ao banir membro.' });
+  }
+};
+
 export const getMembers = async (req, res) => {
   const { id } = req.params;
 

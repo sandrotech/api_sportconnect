@@ -27,6 +27,7 @@ router.post('/:id/members/:memberId/approve', authMiddleware, groupController.ap
 router.post('/:id/members/:memberId/reject', authMiddleware, groupController.rejectJoinRequest);
 router.post('/:id/members/:memberId/promote', authMiddleware, groupController.promoteMember);
 router.delete('/:id/members/:memberId', authMiddleware, groupController.removeMember);
+router.post('/:id/members/:memberId/ban', authMiddleware, groupController.banMember);
 
 // Convites por link
 router.post('/:id/invite', authMiddleware, groupController.generateInviteLink);

@@ -272,7 +272,26 @@ export const getPendingRequests = async (req, res) => {
 
     const pending = await prisma.groupMember.findMany({
       where: { groupId, status: 'PENDING' },
-      include: { user: { select: { id: true, name: true, avatar: true, email: true } } },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            email: true,
+            atleta: {
+              select: {
+                apelido: true,
+                ranking: true,
+                telefone: true,
+                localizacao: true,
+                esportes: true,
+                nivel: true
+              }
+            }
+          }
+        }
+      },
       orderBy: { joinedAt: 'asc' },
     });
     res.json(pending);

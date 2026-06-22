@@ -31,7 +31,8 @@ class HorarioController {
 
   async deleteSlot(req, res) {
     try {
-      await horarioService.deleteSlot(req.params.id, req.user.id);
+      const force = req.query.force === 'true';
+      await horarioService.deleteSlot(req.params.id, req.user.id, force);
       return res.json({ message: 'Slot removido' });
     } catch (error) {
       return res.status(400).json({ error: error.message });

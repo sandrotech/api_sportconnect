@@ -53,7 +53,7 @@ class HorarioService {
     return results;
   }
 
-  async deleteSlot(id, arenaUserId) {
+  async deleteSlot(id, arenaUserId, force = false) {
     const slot = await prisma.horarioSlot.findUnique({ 
       where: { id: Number(id) },
       include: { reservas: { where: { status: { in: ['PENDENTE', 'CONFIRMADA'] } } } }
@@ -62,7 +62,14 @@ class HorarioService {
     await this._verificarPosseQuadra(slot.quadraId, arenaUserId);
     
     if (slot.reservas.length > 0) {
-      throw new Error('Este horário possui reservas ativas e não pode ser apagado. Cancele a reserva primeiro.');
+      if (!force) {
+        throw new Error('Este horário possui reservas ativas e não pode ser apagado. Cancele a reserva primeiro.');
+      }
+      // Cancela todas as reservas ativas atreladas a este slot
+      await prisma.reserva.updateMany({
+        where: { horarioSlotId: Number(id), status: { in: ['PENDENTE', 'CONFIRMADA'] } },
+        data: { status: 'CANCELADA' }
+      });
     }
 
     return prisma.horarioSlot.delete({ where: { id: Number(id) } });

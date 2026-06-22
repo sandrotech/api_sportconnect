@@ -17,7 +17,7 @@ import walletRoutes from './routes/wallet.routes.js';
 import quadraRoutes from './routes/quadra.routes.js';
 import horarioRoutes from './routes/horario.routes.js';
 import reservaRoutes from './routes/reserva.routes.js';
-
+import contactRoutes from './routes/contact.routes.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -52,6 +52,7 @@ app.use('/wallet', walletRoutes);
 app.use('/quadras', quadraRoutes);
 app.use('/horarios', horarioRoutes);
 app.use('/reservas', reservaRoutes);
+app.use('/contact', contactRoutes);
 // Game Sessions aninhadas ao grupo: /groups/:groupId/sessions
 app.use('/groups/:groupId/sessions', gameSessionRoutes);
 // Ratings aninhadas à sessão: /sessions/:sessionId/ratings

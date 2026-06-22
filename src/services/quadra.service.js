@@ -35,9 +35,17 @@ class QuadraService {
 
   async remove(id, arenaUserId) {
     const quadra = await this._verificarPosse(id, arenaUserId);
-    return prisma.quadra.update({
+
+    const reservasCount = await prisma.reserva.count({
+      where: { quadraId: quadra.id }
+    });
+
+    if (reservasCount > 0) {
+      throw new Error('Não é possível excluir a quadra, pois ela possui agendamentos vinculados.');
+    }
+
+    return prisma.quadra.delete({
       where: { id: quadra.id },
-      data: { ativa: false },
     });
   }
 

@@ -17,21 +17,29 @@ class HorarioService {
   async upsertSlot(arenaUserId, { quadraId, data, horaInicio, disponivel, preco, esporte, duracao, intervalo }) {
     await this._verificarPosseQuadra(quadraId, arenaUserId);
     
+    // Parse horaInicio para garantir que seja um Int (ex: "08:00" -> 8, "8" -> 8, 8 -> 8)
+    let horaParsed = horaInicio;
+    if (typeof horaInicio === 'string' && horaInicio.includes(':')) {
+      horaParsed = parseInt(horaInicio.split(':')[0], 10);
+    } else {
+      horaParsed = Number(horaInicio);
+    }
+    
     // Verifica se já existe e tem reservas antes de bloquear
     if (!disponivel) {
       const existing = await prisma.horarioSlot.findUnique({
-        where: { quadraId_data_horaInicio: { quadraId: Number(quadraId), data, horaInicio: Number(horaInicio) } },
+        where: { quadraId_data_horaInicio: { quadraId: Number(quadraId), data, horaInicio: horaParsed } },
         include: { reservas: { where: { status: { in: ['PENDENTE', 'CONFIRMADA'] } } } }
       });
       if (existing && existing.reservas.length > 0) {
-        throw new Error(`O horário das ${horaInicio}:00 possui reservas ativas e não pode ser bloqueado.`);
+        throw new Error(`O horário das ${horaParsed}:00 possui reservas ativas e não pode ser bloqueado.`);
       }
     }
 
     return prisma.horarioSlot.upsert({
-      where: { quadraId_data_horaInicio: { quadraId: Number(quadraId), data, horaInicio: Number(horaInicio) } },
+      where: { quadraId_data_horaInicio: { quadraId: Number(quadraId), data, horaInicio: horaParsed } },
       update: { disponivel, preco: preco ?? null, esporte: esporte ?? null, duracao: duracao ?? 60, intervalo: intervalo ?? 10 },
-      create: { quadraId: Number(quadraId), data, horaInicio: Number(horaInicio), disponivel, preco: preco ?? null, esporte: esporte ?? null, duracao: duracao ?? 60, intervalo: intervalo ?? 10 },
+      create: { quadraId: Number(quadraId), data, horaInicio: horaParsed, disponivel, preco: preco ?? null, esporte: esporte ?? null, duracao: duracao ?? 60, intervalo: intervalo ?? 10 },
     });
   }
 
